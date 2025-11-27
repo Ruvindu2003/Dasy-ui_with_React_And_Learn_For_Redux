@@ -18,7 +18,7 @@ const UserList = () => {
 
     const filteredUsers = users?.filter(user =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.address.toLowerCase().includes(searchTerm.toLowerCase())
+        (user.adrees || user.address)?.toLowerCase().includes(searchTerm.toLowerCase())
     ) || []
 
     const maleCount = users?.filter(u => u.gender === 'MALE').length || 0
