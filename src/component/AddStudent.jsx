@@ -1,43 +1,59 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
-import { addStudent } from '../UserReduser'
-import { UserPlusIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { addStudentAsync, updateStudentAsync, fetchStudents } from '../UserReduser';
+import { UserPlusIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const AddStudent = () => {
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { id } = useParams();
+    const isEdit = Boolean(id);
+
+    // Load existing student for edit mode
+    const existingStudent = useSelector((state) =>
+        state.student.students.find((s) => s.id === Number(id))
+    );
 
     const [formData, setFormData] = useState({
         name: '',
-        email: '',
-        grade: '',
-        status: 'Active'
-    })
+        adrees: '', // Backend expects 'adrees'
+        age: '',
+        gender: '',
+    });
+
+    // Populate form when editing
+    useEffect(() => {
+        if (isEdit && existingStudent) {
+            setFormData({
+                name: existingStudent.name || '',
+                adrees: existingStudent.adrees || existingStudent.address || '',
+                age: existingStudent.age || '',
+                gender: existingStudent.gender || '',
+            });
+        }
+    }, [isEdit, existingStudent]);
 
     const handleChange = (e) => {
-        const { name, value } = e.target
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }))
-    }
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        // Send formData directly as it contains 'adrees' which the backend expects.
+        // Do NOT map to 'address' or send extra fields.
+        const payload = { ...formData };
 
-        // Create new student with unique ID
-        const newStudent = {
-            id: Date.now(),
-            ...formData
+        if (isEdit) {
+            await dispatch(updateStudentAsync({ id: Number(id), ...payload }));
+        } else {
+            await dispatch(addStudentAsync(payload));
         }
-
-        // Dispatch to Redux store
-        dispatch(addStudent(newStudent))
-
-        // Navigate back to student list
-        navigate('/studentList')
-    }
+        // Refresh the student list to reflect changes
+        dispatch(fetchStudents());
+        navigate('/studentList');
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12">
@@ -49,18 +65,19 @@ const AddStudent = () => {
                         className="flex items-center space-x-2 text-indigo-600 hover:text-indigo-700 font-medium mb-4 transition-colors duration-200"
                     >
                         <ArrowLeftIcon className="h-5 w-5" />
-                        <span>Back to Student List</span>
+                        <span>{isEdit ? 'Back to Edit' : 'Back to Student List'}</span>
                     </button>
-
                     <div className="flex items-center space-x-4">
                         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-2xl shadow-lg">
                             <UserPlusIcon className="h-8 w-8 text-white" />
                         </div>
                         <div>
                             <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                Add New Student
+                                {isEdit ? 'Edit Student' : 'Add New Student'}
                             </h1>
-                            <p className="text-gray-500 mt-1">Fill in the details to add a new student</p>
+                            <p className="text-gray-500 mt-1">
+                                {isEdit ? 'Update student details' : 'Fill in the details to add a new student'}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -68,7 +85,7 @@ const AddStudent = () => {
                 {/* Form Card */}
                 <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Name Field */}
+                        {/* Name */}
                         <div>
                             <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                                 Full Name <span className="text-red-500">*</span>
@@ -84,72 +101,59 @@ const AddStudent = () => {
                                 placeholder="Enter student's full name"
                             />
                         </div>
-
-                        {/* Email Field */}
+                        {/* Address */}
                         <div>
-                            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                                Email Address <span className="text-red-500">*</span>
+                            <label htmlFor="adrees" className="block text-sm font-semibold text-gray-700 mb-2">
+                                Address <span className="text-red-500">*</span>
                             </label>
                             <input
-                                type="email"
-                                id="email"
-                                name="email"
+                                type="text"
+                                id="adrees"
+                                name="adrees"
                                 required
-                                value={formData.email}
+                                value={formData.adrees}
                                 onChange={handleChange}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
-                                placeholder="student@example.com"
+                                placeholder="Enter address"
                             />
                         </div>
-
-                        {/* Grade Field */}
+                        {/* Age */}
                         <div>
-                            <label htmlFor="grade" className="block text-sm font-semibold text-gray-700 mb-2">
-                                Grade <span className="text-red-500">*</span>
+                            <label htmlFor="age" className="block text-sm font-semibold text-gray-700 mb-2">
+                                Age <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="number"
+                                id="age"
+                                name="age"
+                                required
+                                value={formData.age}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
+                                placeholder="Enter age"
+                            />
+                        </div>
+                        {/* Gender */}
+                        <div>
+                            <label htmlFor="gender" className="block text-sm font-semibold text-gray-700 mb-2">
+                                Gender <span className="text-red-500">*</span>
                             </label>
                             <select
-                                id="grade"
-                                name="grade"
+                                id="gender"
+                                name="gender"
                                 required
-                                value={formData.grade}
+                                value={formData.gender}
                                 onChange={handleChange}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
                             >
-                                <option value="">Select a grade</option>
-                                <option value="A+">A+</option>
-                                <option value="A">A</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B">B</option>
-                                <option value="B-">B-</option>
-                                <option value="C+">C+</option>
-                                <option value="C">C</option>
-                                <option value="C-">C-</option>
-                                <option value="D">D</option>
-                                <option value="F">F</option>
+                                <option value="">Select gender</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                                <option value="OTHER">Other</option>
                             </select>
                         </div>
-
-                        {/* Status Field */}
-                        <div>
-                            <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-2">
-                                Status <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                id="status"
-                                name="status"
-                                required
-                                value={formData.status}
-                                onChange={handleChange}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 bg-gray-50 hover:bg-white"
-                            >
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
-                            </select>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-4 pt-6 border-t border-gray-200">
+                        {/* Buttons */}
+                        <div className="flex gap-4 pt-4 border-t border-gray-200">
                             <button
                                 type="button"
                                 onClick={() => navigate('/studentList')}
@@ -161,7 +165,7 @@ const AddStudent = () => {
                                 type="submit"
                                 className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-6 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                             >
-                                Add Student
+                                {isEdit ? 'Update Student' : 'Add Student'}
                             </button>
                         </div>
                     </form>
@@ -170,12 +174,12 @@ const AddStudent = () => {
                 {/* Info Card */}
                 <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
                     <p className="text-sm text-blue-800">
-                        <span className="font-semibold">Note:</span> All fields marked with <span className="text-red-500">*</span> are required. The student will be added to the list immediately after submission.
+                        <span className="font-semibold">Note:</span> All fields marked with <span className="text-red-500">*</span> are required.
                     </p>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default AddStudent
+export default AddStudent;
