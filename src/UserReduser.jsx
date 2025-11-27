@@ -1,63 +1,39 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { api } from './api'
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { api } from './api';
 
-// Async thunks for API calls
-export const fetchUsers = createAsyncThunk(
-    "users/fetchUsers",
-    async () => {
-        const response = await api.get("/student/getAll");
-        return response.data;
-    }
-);
+// ==================== USER ASYNC THUNKS ====================
+export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {
+    const response = await api.get('/student/getAll');
+    return response.data;
+});
 
-export const fetchUserById = createAsyncThunk(
-    "users/fetchUserById",
-    async (id) => {
-        const response = await api.get(`/student/${id}`);
-        return response.data;
-    }
-);
+export const fetchUserById = createAsyncThunk('users/fetchUserById', async (id) => {
+    const response = await api.get(`/student/${id}`);
+    return response.data;
+});
 
-export const addUserAsync = createAsyncThunk(
-    "users/addUser",
-    async (user) => {
-        const response = await api.post("/student/Add-Student", user);
-        return response.data;
-    }
-);
+export const addUserAsync = createAsyncThunk('users/addUser', async (user) => {
+    const response = await api.post('/student/Add-Student', user);
+    return response.data;
+});
 
-export const removeUserAsync = createAsyncThunk(
-    "users/removeUser",
-    async (id) => {
-        const response = await api.delete(`/Student-Delete/${id}`);
-        return response.data;
-    }
-);
+export const removeUserAsync = createAsyncThunk('users/removeUser', async (id) => {
+    const response = await api.delete(`/student-Delete/${id}`);
+    return response.data;
+});
 
-export const updateUserAsync = createAsyncThunk(
-    "users/updateUser",
-    async (user) => {
-        const response = await api.put(`/student/update-Student`, user);
-        return response.data;
-    }
-);
+export const updateUserAsync = createAsyncThunk('users/updateUser', async (user) => {
+    const response = await api.put('/student/update-Student', user);
+    return response.data;
+});
 
-// Initial state with sample users
 const initialUserState = {
-    users: [
-        { id: 1, name: 'John Doe', address: '123 Main St, New York, NY 10001', age: '28', gender: 'MALE' },
-        { id: 2, name: 'Jane Smith', address: '456 Oak Ave, Los Angeles, CA 90001', age: '32', gender: 'FEMALE' },
-        { id: 3, name: 'Alex Johnson', address: '789 Pine Rd, Chicago, IL 60601', age: '25', gender: 'OTHER' },
-        { id: 4, name: 'Sarah Williams', address: '321 Elm St, Houston, TX 77001', age: '29', gender: 'FEMALE' },
-        { id: 5, name: 'Michael Brown', address: '654 Maple Dr, Phoenix, AZ 85001', age: '35', gender: 'MALE' },
-        { id: 6, name: 'Emily Davis', address: '987 Cedar Ln, Philadelphia, PA 19101', age: '27', gender: 'FEMALE' },
-    ],
+    users: [],
     user: null,
     loading: false,
-    error: null
+    error: null,
 };
 
-// User slice
 const userSlice = createSlice({
     name: 'user',
     initialState: initialUserState,
@@ -66,18 +42,16 @@ const userSlice = createSlice({
             state.users.push(action.payload);
         },
         removeUser: (state, action) => {
-            state.users = state.users.filter(user => user.id !== action.payload);
+            state.users = state.users.filter((u) => u.id !== action.payload);
         },
         updateUser: (state, action) => {
-            const index = state.users.findIndex(user => user.id === action.payload.id);
-            if (index !== -1) {
-                state.users[index] = action.payload;
-            }
-        }
+            const idx = state.users.findIndex((u) => u.id === action.payload.id);
+            if (idx !== -1) state.users[idx] = action.payload;
+        },
     },
     extraReducers: (builder) => {
         builder
-            // Fetch All Users
+            // fetch all users
             .addCase(fetchUsers.pending, (state) => {
                 state.loading = true;
             })
@@ -89,8 +63,7 @@ const userSlice = createSlice({
                 state.loading = false;
                 state.error = action.error;
             })
-
-            // Fetch User by ID
+            // fetch user by id
             .addCase(fetchUserById.pending, (state) => {
                 state.loading = true;
             })
@@ -102,8 +75,7 @@ const userSlice = createSlice({
                 state.loading = false;
                 state.error = action.error;
             })
-
-            // Add User
+            // add user
             .addCase(addUserAsync.pending, (state) => {
                 state.loading = true;
             })
@@ -115,75 +87,151 @@ const userSlice = createSlice({
                 state.loading = false;
                 state.error = action.error;
             })
-
-            // Remove User
+            // remove user
             .addCase(removeUserAsync.pending, (state) => {
                 state.loading = true;
             })
             .addCase(removeUserAsync.fulfilled, (state, action) => {
                 state.loading = false;
-                state.users = state.users.filter(u => u.id !== action.payload.id);
+                state.users = state.users.filter((u) => u.id !== action.payload.id);
             })
             .addCase(removeUserAsync.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             })
-
-            // Update User
+            // update user
             .addCase(updateUserAsync.pending, (state) => {
                 state.loading = true;
             })
             .addCase(updateUserAsync.fulfilled, (state, action) => {
                 state.loading = false;
-                const index = state.users.findIndex(u => u.id === action.payload.id);
-                if (index !== -1) {
-                    state.users[index] = action.payload;
-                }
+                const idx = state.users.findIndex((u) => u.id === action.payload.id);
+                if (idx !== -1) state.users[idx] = action.payload;
             })
             .addCase(updateUserAsync.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error;
             });
-    }
+    },
 });
 
-// Student slice for backward compatibility
-const studentInitialState = {
-    students: [
-        { id: 1, name: 'John Doe', email: 'john@example.com', grade: 'A', status: 'Active' },
-        { id: 2, name: 'Jane Smith', email: 'jane@example.com', grade: 'B+', status: 'Active' },
-        { id: 3, name: 'Mike Johnson', email: 'mike@example.com', grade: 'A-', status: 'Active' },
-        { id: 4, name: 'Sarah Williams', email: 'sarah@example.com', grade: 'B', status: 'Inactive' },
-        { id: 5, name: 'Tom Brown', email: 'tom@example.com', grade: 'A+', status: 'Active' },
-    ],
+// ==================== STUDENT ASYNC THUNKS ====================
+export const fetchStudents = createAsyncThunk('students/fetchStudents', async () => {
+    const response = await api.get('/student/getAll');
+    return response.data;
+});
+
+export const fetchStudentById = createAsyncThunk('students/fetchStudentById', async (id) => {
+    const response = await api.get(`/student/${id}`);
+    return response.data;
+});
+
+export const addStudentAsync = createAsyncThunk('students/addStudent', async (student) => {
+    const response = await api.post('/student/Add-Student', student);
+    return response.data;
+});
+
+export const removeStudentAsync = createAsyncThunk('students/removeStudent', async (id) => {
+    const response = await api.delete(`/student/Student-Delete/${id}`);
+    return response.data;
+});
+
+export const updateStudentAsync = createAsyncThunk('students/updateStudent', async (student) => {
+    const response = await api.put('/student/update-Student', student);
+    return response.data;
+});
+
+const initialStudentState = {
+    students: [],
     student: null,
     loading: false,
-    error: null
+    error: null,
 };
 
 const studentSlice = createSlice({
     name: 'student',
-    initialState: studentInitialState,
+    initialState: initialStudentState,
     reducers: {
         addStudent: (state, action) => {
             state.students.push(action.payload);
         },
         removeStudent: (state, action) => {
-            state.students = state.students.filter(student => student.id !== action.payload);
+            state.students = state.students.filter((s) => s.id !== action.payload);
         },
         updateStudent: (state, action) => {
-            const index = state.students.findIndex(student => student.id === action.payload.id);
-            if (index !== -1) {
-                state.students[index] = action.payload;
-            }
-        }
-    }
+            const idx = state.students.findIndex((s) => s.id === action.payload.id);
+            if (idx !== -1) state.students[idx] = action.payload;
+        },
+    },
+    extraReducers: (builder) => {
+        builder
+            // fetch all students
+            .addCase(fetchStudents.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchStudents.fulfilled, (state, action) => {
+                state.loading = false;
+                state.students = action.payload;
+            })
+            .addCase(fetchStudents.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            // fetch student by id
+            .addCase(fetchStudentById.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchStudentById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.student = action.payload;
+            })
+            .addCase(fetchStudentById.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            // add student
+            .addCase(addStudentAsync.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(addStudentAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.students.push(action.payload);
+            })
+            .addCase(addStudentAsync.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            // remove student
+            .addCase(removeStudentAsync.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(removeStudentAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                state.students = state.students.filter((s) => s.id !== action.payload.id);
+            })
+            .addCase(removeStudentAsync.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            })
+            // update student
+            .addCase(updateStudentAsync.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateStudentAsync.fulfilled, (state, action) => {
+                state.loading = false;
+                const idx = state.students.findIndex((s) => s.id === action.payload.id);
+                if (idx !== -1) state.students[idx] = action.payload;
+            })
+            .addCase(updateStudentAsync.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error;
+            });
+    },
 });
 
-// Export user actions and reducer
+// Export actions and reducers
 export const { addUser, removeUser, updateUser } = userSlice.actions;
 export const userReducer = userSlice.reducer;
 
-// Export student actions and reducer for backward compatibility
 export const { addStudent, removeStudent, updateStudent } = studentSlice.actions;
 export default studentSlice.reducer;
