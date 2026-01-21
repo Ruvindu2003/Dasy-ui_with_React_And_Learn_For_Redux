@@ -14,7 +14,7 @@ const Student = ({ student }) => {
     }
 
     const handleEdit = () => {
-        navigate(`/editStudent/${student.id}`)
+        navigate(`//editStudent${student.id}`)
     }
 
     // Choose a gradient based on age for visual flair

@@ -60,7 +60,7 @@ export const userAPI = {
     update: (id, userData) => api.put('/student/update-Student', userData),
 
     // Delete user - DELETE /Student-Delete/{id}
-    delete: (id) => api.delete(`/Student-Delete/${id}`),
+    delete: (id) => api.delete(`/student/Student-Delete/${id}`),
 };
 
 export default api;

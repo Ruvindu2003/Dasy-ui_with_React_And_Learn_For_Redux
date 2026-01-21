@@ -167,6 +167,7 @@ const Contact = () => {
             )}
           </div>
         )}
+        
 
         {/* BUTTONS */}
         <div className="flex justify-between mt-6">
@@ -181,6 +182,7 @@ const Contact = () => {
               Next
             </button>
           )}
+          
         </div>
       </div>
     </div>
