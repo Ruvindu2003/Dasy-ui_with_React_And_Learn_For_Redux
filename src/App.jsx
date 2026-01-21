@@ -7,16 +7,14 @@ import AddStudent from './component/AddStudent'
 import UserList from './component/UserList'
 import AddUser from './component/AddUser'
 import DashBoard from './component/DashBoard'
+import NavBar from './component/NavBar'
 
 
 function App() {
-
   return (
     <>
-
-
+      <NavBar />
       <Routes>
-
         {/* Default root route */}
         <Route path='/' element={<Home />} />
         <Route path='/home' element={<Home />} />
@@ -25,19 +23,12 @@ function App() {
         <Route path='/studentList' element={<StudentList />} />
         <Route path='/addStudent' element={<AddStudent />} />
         <Route path='/editStudent/:id' element={<AddStudent />} />
-
         {/* User Management Routes */}
         <Route path='/userList' element={<UserList />} />
         <Route path='/addUser' element={<AddUser />} />
         <Route path='/editUser/:id' element={<AddUser />} />
-
       </Routes>
-
-
     </>
-
-
-
   )
 }
 
